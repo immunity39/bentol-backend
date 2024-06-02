@@ -1,41 +1,21 @@
-func (td *Todo) Create(t *model.Todo) error {
-	if err := td.db.Create(t).Error; err != nil {
-		return err
-	}
-	return nil
+package infrastructure
+
+import (
+	"bentol/domain/model"
+	"bentol/domain/repository"
+)
+
+type UserRepositoryImpl struct{}
+
+func NewUserRepository() repository.UserRepository {
+	return &UserRepositoryImpl{}
 }
 
-func (td *Todo) Update(t *model.Todo) error {
-	if err := td.db.Save(t).Error; err != nil {
-		return err
+func (r *UserRepositoryImpl) FindByNameAndPassword(name, password string) (*model.User, error) {
+	var user model.User
+	result := DB.Raw("SELECT * FROM `User` WHERE name = ? AND password = ?", name, password).Scan(&user)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	return nil
-}
-
-func (td *Todo) Find(id int) (*model.Todo, error) {
-	var todo *model.Todo
-	err := td.db.Where("id = ?", id).Take(&todo).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return todo, nil
-}
-
-func (td *Todo) FindAll() ([]*model.Todo, error) {
-	var todos []*model.Todo
-	err := td.db.Find(&todos).Error
-	if err != nil {
-		return nil, err
-	}
-	return todos, nil
-}
-
-func (td *Todo) Delete(id int) error {
-	if err := td.db.Where("id = ?", id).Delete(&model.Todo{}).Error; err != nil {
-		return err
-	}
-	return nil
+	return &user, nil
 }
