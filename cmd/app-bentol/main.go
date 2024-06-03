@@ -1,43 +1,21 @@
 package main
 
 import (
-	"app/handler"
-	"app/infrastracture"
-	"app/usecase"
-	"fmt"
-	appvalidator "app/handler/validator"
+	"bentol/handler"
+	"bentol/infrastructure"
+	"bentol/usecase"
+
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func main() {
-	d, err := infrastructure.NewDB()
-	if err != nil {
-		fmt.Printf("failed to start server. db setup failed, err = %s", err.Error())
-		return
-	}
-	r := setupRouter(d)
-	if err := appvalidator.SetupValidator(); err != nil {
-		fmt.Printf("failed to start server. validator setup failed, err = %s", err.Error())
-		return
-	}
-	r.Run()
-}
+	infrastructure.InitDB()
 
-func setupRouter(d, *gorm.DB) *gin.Engine {
+	userRepository := infrastructure.NewUserRepository()
+	loginUsecase := usecase.NewLoginUsecase(userRepository)
+	loginHandler := handler.NewLoginHandler(loginUsecase)
+
 	r := gin.Default()
-
-	repository := infrastructure.NewBentol(d)
-	usecase := usease.NewBentol(repository)
-	handler := hander.NewBentol(usecase)
-
-	bentol := r.Group("") {
-		bentol.POST("/login", handler.Login)
-		bentol.GET("/shop", handler.ShopList)		
-		bentol.GET("/shop/:id", handler.ItemList)
-		bentol.GET("/shop/:id/bento/:id", handler.ItemSelect)
-		bentol.POST("/paymant", handler.Pay)
-		bentol.DELETE("/cancel/:id", handler.Cancel)
-	}
-	return r
+	r.POST("/login", loginHandler.Login)
+	r.Run(":8080")
 }
