@@ -1,120 +1,35 @@
+package handler
+
 import (
+	"bentol/usecase"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// リクエストデータを格納するための構造体
-type CreateRequestParam struct {
-	Task string `json:"task" binding:"required,max=60"`
+type LoginHandler struct {
+	LoginUsecase *usecase.LoginUsecase
 }
 
-func (t *todoHandler) Create(c *gin.Context) {
-	var req CreateRequestParam
-	// リクエストパラメータを構造体（CreateRequestParam）にマッピング
-	if err := c.ShouldBindJSON(&req); err != nil {
-		// バリデーションエラーがあった場合はエラーを返す
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func NewLoginHandler(lu *usecase.LoginUsecase) *LoginHandler {
+	return &LoginHandler{LoginUsecase: lu}
+}
+
+func (lh *LoginHandler) Login(c *gin.Context) {
+	var loginData struct {
+		Name     string `json:"name" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&loginData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	// usecase の呼び出し
-	err := t.usecase.Create(req.Task)
+
+	user, err := lh.LoginUsecase.Login(loginData.Name, loginData.Password)
 	if err != nil {
-		// エラーがあった場合はエラーレスポンスを返却
-		c.JSON(http.StatusInternalServerError, "")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	// レスポンスを返却
-	c.JSON(http.StatusCreated, nil)
-}
 
-// パス(todo/:id)に指定されたパラメータを格納するための構造体
-type UpdateRequestPathParam struct {
-	ID int `uri:"id"`
-}
-
-// リクエストデータ(body)を格納するための構造体
-type UpdateRequestBodyParam struct {
-	Task   string           `json:"task" binding:"required,max=60"`
-	Status model.TaskStatus `json:"status" binding:"required,task_status"`
-}
-
-func (t *todoHandler) Update(c *gin.Context) {
-	var pathParam UpdateRequestPathParam
-	var bodyParam UpdateRequestBodyParam
-	// パスパラメータを構造体（UpdateRequestPathParam）にマッピング
-	if err := c.ShouldBindUri(&pathParam); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	// リクエストパラメータ(body)を構造体（UpdateRequestBodyParam）にマッピング
-	if err := c.ShouldBindJSON(&bodyParam); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	// usecase の呼び出し
-	if err := t.usecase.Update(pathParam.ID, bodyParam.Task, bodyParam.Status); err != nil {
-		c.JSON(http.StatusInternalServerError, "")
-		return
-	}
-	// レスポンスを返却
-	c.JSON(http.StatusNoContent, nil)
-}
-
-// パス(todo/:id)に指定されたパラメータを格納するための構造体
-type FindRequestParam struct {
-	ID int `uri:"id" binding:"required"`
-}
-
-func (t *todoHandler) Find(c *gin.Context) {
-	var req FindRequestParam
-	// パスパラメータを構造体（FindRequestParam）にマッピング
-
-	if err := c.ShouldBindUri(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	// usecase の呼び出し
-	res, err := t.usecase.Find(req.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	if res == nil {
-		// 検索結果(res = nil）が存在しなかった場合は 404 not found を返す
-		c.JSON(http.StatusNotFound, nil)
-		return
-	}
-	// レスポンスを返却
-	c.JSON(http.StatusOK, res)
-}
-
-func (t *todoHandler) FindAll(c *gin.Context) {
-	res, err := t.usecase.FindAll()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, res)
-}
-
-// パス(todo/:id)に指定されたパラメータを格納するための構造体
-type DeleteRequestParam struct {
-	ID int `uri:"id"`
-}
-
-func (t *todoHandler) Delete(c *gin.Context) {
-	var req DeleteRequestParam
-	// パスパラメータを構造体（DeleteRequestParam）にマッピング
-	if err := c.ShouldBindUri(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	// usecase の呼び出し
-	if err := t.usecase.Delete(req.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	// レスポンスを返却
-	c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
 }
