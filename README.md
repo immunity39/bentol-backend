@@ -5,11 +5,11 @@ backend側の設定等について
 - ログイン +json
 POST /login
 - ショップ一覧
-GET /shop
+GET /store
 - ショップの弁当一覧
-GET /shop/{id}
+GET /store/{id}
 - ショップの弁当選択
-GET /shop/{id}/bento/{id} or /shop/{id}/{id}
+GET /store/{id}/bento/{id} or /store/{id}/{id}
 - 支払い + json
 POST /payment
 - 注文キャンセル
