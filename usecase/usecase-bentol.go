@@ -1,62 +1,38 @@
 package usecase
 
 import (
-	"bentol/domain/model"
-	"bentol/domain/repository"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginUsecase struct {
-	UserRepository repository.UserRepository
+var jwtKey = []byte("your_secret_key")
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
 }
 
-func NewLoginUsecase(ur repository.UserRepository) *LoginUsecase {
-	return &LoginUsecase{UserRepository: ur}
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
-func (lu *LoginUsecase) Login(name, password string) (*model.User, error) {
-	return lu.UserRepository.FindByNameAndPassword(name, password)
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
 
-type StoreUsecase struct {
-	StoreRepository repository.StoreRepository
-}
+func GenerateJWT(user model.User) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Username: user.Name,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
 
-func NewStoreUsecase(sr repository.StoreRepository) *StoreUsecase {
-	return &StoreUsecase{StoreRepository: sr}
-}
-
-func (su *StoreUsecase) GetAllStores() ([]model.Store, error) {
-	return su.StoreRepository.GetAllStores()
-}
-
-type MenueUsecase struct {
-	MenueRepository repository.MenueRepository
-}
-
-func NewMenueUsecase(mr repository.MenueRepository) *MenueUsecase {
-	return &MenueUsecase{MenueRepository: mr}
-}
-
-func (mu *MenueUsecase) GetMenuesByStoreID(storeID uint) ([]model.Menue, error) {
-	return mu.MenueRepository.GetMenuesByStoreID(storeID)
-}
-
-func (mu *MenueUsecase) GetMenueByID(id uint) (*model.Menue, error) {
-	return mu.MenueRepository.GetMenueByID(id)
-}
-
-type UserReservationUsecase struct {
-	UserReservationRepository repository.UserReservationRepository
-}
-
-func NewUserReservationUsecase(urr repository.UserReservationRepository) *UserReservationUsecase {
-	return &UserReservationUsecase{UserReservationRepository: urr}
-}
-
-func (uru *UserReservationUsecase) CreateReservation(reservation *model.UserReservation) error {
-	return uru.UserReservationRepository.CreateReservation(reservation)
-}
-
-func (uru *UserReservationUsecase) DeleteReservationByID(id uint) error {
-	return uru.UserReservationRepository.DeleteReservationByID(id)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtKey)
 }

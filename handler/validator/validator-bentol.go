@@ -1,20 +1,24 @@
 package validator
 
 import (
-	"bentol/domain/model"
-
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
+	"backend/domain/model"
+	"errors"
+	"net/mail"
 )
 
-func SetupValidator() error {
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("task_status", ValidateTaskStatus); err != nil {
-			return err
-		}
+func ValidateUser(user model.User) error {
+	if user.Name == "" {
+		return errors.New("name is required")
 	}
+
+	if _, err := mail.ParseAddress(user.Mail); err != nil {
+		return errors.New("invalid email address")
+	}
+
+	if len(user.Password) < 6 {
+		return errors.New("password must be at least 6 characters long")
+	}
+
 	return nil
 }
-func ValidateTaskStatus(fl validator.FieldLevel) bool {
-	return model.TaskStatusMap[model.TaskStatus(fl.Field().String())]
-}
+

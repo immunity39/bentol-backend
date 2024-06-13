@@ -36,12 +36,11 @@ func InitDB() {
 	//dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 	//    Config.dbUser, Config.dbPassword, Config.dbHost, Config.dbPort, Config.dbName)
 
-	dsn := "%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local"
-
-	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	fmt.Println("Database connection successful")
+    DB.AutoMigrate(&model.User{}, &model.Store{}, &model.Menue{}, &model.UserReservation{}, &model.StoreSchedule{})
 }
