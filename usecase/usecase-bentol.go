@@ -1,18 +1,38 @@
 package usecase
 
 import (
-	"bentol/domain/model"
-	"bentol/domain/repository"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginUsecase struct {
-	UserRepository repository.UserRepository
+var jwtKey = []byte("your_secret_key")
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
 }
 
-func NewLoginUsecase(ur repository.UserRepository) *LoginUsecase {
-	return &LoginUsecase{UserRepository: ur}
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
-func (lu *LoginUsecase) Login(name, password string) (*model.User, error) {
-	return lu.UserRepository.FindByNameAndPassword(name, password)
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func GenerateJWT(user model.User) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Username: user.Name,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtKey)
 }

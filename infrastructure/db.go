@@ -3,30 +3,44 @@ package infrastructure
 import (
 	"fmt"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
+type ConfigList struct {
+	dbUser     string
+	dbPassword string
+	dbHost     string
+	dbPort     string
+	dbName     string
+}
+
+var Config ConfigList
 var DB *gorm.DB
 
+func loadConfig() {
+	// Get the current directory
+	//Config = ConfigList{
+	//    dbUser:     os.Getenv("dbUser")
+	//    dbPassword: os.Getenv("dbPassword")
+	//    dbHost:     os.Getenv("dbHost")
+	//    dbPort:     os.Getenv("dbPort")
+	//    dbName:     os.Getenv("dbName")
+	//}
+}
+
 func InitDB() {
-	err := godotenv.Load(".env")
+	// loadConfig()
+
+	//dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	//    Config.dbUser, Config.dbPassword, Config.dbHost, Config.dbPort, Config.dbName)
+
+	DB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%scharset=utf8mb&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
+	fmt.Println("Database connection successful")
+    DB.AutoMigrate(&model.User{}, &model.Store{}, &model.Menue{}, &model.UserReservation{}, &model.StoreSchedule{})
 }

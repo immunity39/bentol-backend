@@ -1,21 +1,22 @@
 package main
 
 import (
-	"bentol/handler"
-	"bentol/infrastructure"
-	"bentol/usecase"
+	"backend/handler"
+	"backend/infrastructure"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	router := gin.Default()
 	infrastructure.InitDB()
 
-	userRepository := infrastructure.NewUserRepository()
-	loginUsecase := usecase.NewLoginUsecase(userRepository)
-	loginHandler := handler.NewLoginHandler(loginUsecase)
+	router.POST("/login", handler.Login)
+	router.POST("/registration", handler.RegisterUser)
+	router.GET("/store", handler.GetStores)
+	router.GET("/store/:id", handler.GetStoreMenues)
+	router.GET("/menue/:id", handler.GetMenueAvailability)
+	router.POST("/payment", handler.MakePayment)
 
-	r := gin.Default()
-	r.POST("/login", loginHandler.Login)
-	r.Run(":8080")
+	router.Run(":8080")
 }
