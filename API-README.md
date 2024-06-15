@@ -1,112 +1,106 @@
-# 各種APIの細かい想定をここに記述しています。
+# 弁当予約販売システム API 仕様
 
-## ログイン処理（仮）
-POST /login
-front -> back ログインのユーザー情報 json
-back -> front ログイン可否による情報
+## エンドポイント一覧
 
-front -> back json
-```
-{
-    "name": "user-name",
-    "password": "user-password"
-}
-```
-back -> front
-ログイン成功 - 正常なリクエストを受け取ったことを示すクエリを返す
-ログイン失敗 - 正常にログインできなかったことを示すクエリを返す
-
-## ショップの一覧取得
-GET /store
-front -> back リクエストのみ
-back -> front 取得した販売店情報の一覧を返す
-
-front -> back
-リクエストのみ
-back -> front
-```
-{
-    "store": "store_1",
-    "store": "store_2",
-        ... //省略
-    "store": "store_n"
-}
-```
-
-## ショップの弁当一覧
-GET /store/{id}
-front -> back 選択した販売店の名前
-back -> front 取得した販売店の販売弁当の情報の一覧を返す
-front -> back
-```
-{
-    "store": "store_2"
-}
-```
-back -> front
-```
-{
-    "store": "store_2" {
-        "menue": "bentou_1",
-        "menue": "bentou_2",
-        ...
-        "menue": "bentou_n"
+### ユーザー登録
+- **URL**: `/registration`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "name": "user-name",
+        "password": "user-password",
+        "mail": "user-mail"
     }
-}
-```
+    ```
+- **レスポンス**
+    - 成功時: ユーザー登録成功メッセージ
+    - 失敗時: エラーメッセージ
 
-## ショップの弁当選択
-GET /menue/{id}
-front -> back 選択したメニューの情報
-back -> front 取得したメニューの購入可能な情報の返答
-front -> back
-```
-{
-    "store": "store_2",
-    "menue": "bentou_1"
-}
-```
-back -> front
-```
-{
-    "store": "store_2",
-    "menue": "bentou_1" {
-        {
-            "time": "12:00",
-            "stock": "5"
-        },
-        {
-            "time": "12:10",
-            "stock": "3"
-        },
-        ...
-        {
-            "time": "hh:mm",
-            "stock": "n"
+### ログイン
+- **URL**: `/login`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "name": "user-name",
+        "password": "user-password"
+    }
+    ```
+- **レスポンス**
+    - 成功時: ログイン成功メッセージ
+    - 失敗時: エラーメッセージ
+
+### 店舗一覧取得
+- **URL**: `/store`
+- **メソッド**: `GET`
+- **リクエスト**: なし
+- **レスポンス**
+    ```json
+    {
+        "stores": [
+            {"id": 1, "name": "store_1"},
+            {"id": 2, "name": "store_2"},
+            ...
+        ]
+    }
+    ```
+
+### 店舗の弁当一覧取得
+- **URL**: `/store/:id`
+- **メソッド**: `GET`
+- **リクエスト**: なし
+- **レスポンス**
+    ```json
+    {
+        "store": {
+            "id": 1,
+            "name": "store_1",
+            "menues": [
+                {"id": 1, "name": "bentou_1", "price": 500, "description": "desc", "is_sold_out": false},
+                {"id": 2, "name": "bentou_2", "price": 600, "description": "desc", "is_sold_out": false},
+                ...
+            ]
         }
     }
-}
-```
+    ```
 
-## 購入可否
-POST /payment
-front -> back 購入情報
-back -> front 購入可否の情報
-front -> back
-```
-{
-    "store": "store_2",
-    "menue": "bentou_1",
-    "time": "12:10",
-    "count": "2"
-}
-```
-back -> front
-購入可能 - 購入可能なことを示すクエリを返す
-購入不可能 - 購入不可能なことを示すクエリを返す
+### 予約ポリシー設定
+- **URL**: `/store/policy`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "store_id": 1,
+        "date": "2024-06-14",
+        "day_of_week": 5,
+        "time_slot_interval": 10,
+        "max_reservations_per_slot": 5
+    }
+    ```
+- **レスポンス**
+    - 成功時: ポリシー設定成功メッセージ
+    - 失敗時: エラーメッセージ
 
-## 注文キャンセル
-DELETE /cancel/{id}
-// 未定
+### 予約の確認および実行
+- **URL**: `/payment`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "user_id": 1,
+        "store_id": 1,
+        "menue_id": 1,
+        "time": "12:10",
+        "date": "2024-06-14",
+        "count": 2
+    }
+    ```
+- **レスポンス**
+    - 成功時: 予約成功メッセージ
+    - 失敗時: エラーメッセージ（予約リミット超過など）
 
-ショップ側の操作は一度後回し
+## 注意事項
+
+- すべてのリクエストとレスポンスはJSON形式で行います。
+- `user_id`などのユーザー情報は、セキュリティ上の理由から本番環境ではJWTトークンなどの認証機構を利用することを推奨します。
