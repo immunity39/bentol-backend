@@ -1,13 +1,47 @@
 package controllers
 
 import (
-	"bentol/config"
-	"bentol/models"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"bentol/config"
+	"bentol/models"
 )
+
+func RegisterStore(c *gin.Context) {
+	var input struct {
+		StoreName string `json:"store_name" binding:"required"`
+		Email     string `json:"email" binding:"required,email"`
+		Password  string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	store := models.Store{Name: input.StoreName}
+	if err := config.DB.Create(&store).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	storeAdmin := models.StoreAdmin{
+		StoreID:  store.ID,
+		Email:    input.Email,
+		Password: input.Password,
+	}
+
+	if err := config.DB.Create(&storeAdmin).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store and admin registered successfully"})
+}
 
 func GetStores(c *gin.Context) {
 	var stores []models.Store
@@ -20,6 +54,55 @@ func GetStoreMenues(c *gin.Context) {
 	storeID := c.Param("id")
 	config.DB.Where("store_id = ?", storeID).Find(&menues)
 	c.JSON(http.StatusOK, gin.H{"menues": menues})
+}
+
+func UpdateStore(c *gin.Context) {
+	storeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid store ID"})
+		return
+	}
+
+	var input struct {
+		StoreName string `json:"store_name"`
+		Policy    struct {
+			TimeSlotInterval       int `json:"time_slot_interval"`
+			MaxReservationsPerSlot int `json:"max_reservations_per_slot"`
+		} `json:"policy"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var store models.Store
+	if err := config.DB.First(&store, storeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
+		return
+	}
+
+	store.Name = input.StoreName
+	if err := config.DB.Save(&store).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	policy := models.StoreReservationPolicy{
+		StoreID:                uint(storeID),
+		TimeSlotInterval:       input.Policy.TimeSlotInterval,
+		MaxReservationsPerSlot: input.Policy.MaxReservationsPerSlot,
+		CreatedAt:              time.Now(),
+		UpdatedAt:              time.Now(),
+	}
+
+	if err := config.DB.Save(&policy).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store and policy updated successfully"})
+
 }
 
 type PolicyInput struct {
