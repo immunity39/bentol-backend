@@ -13,62 +13,74 @@
 
 ## データベース構造
 
-以下のテーブルを含むMariaDBデータベースを使用します。
+### User
 
-### Userテーブル
-- `id`: プライマリキー
+- `id`: ユーザーID
 - `name`: ユーザー名
-- `mail`: ユーザーメールアドレス
+- `mail`: メールアドレス
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-### Storeテーブル
-- `id`: プライマリキー
+### Store
+
+- `id`: 店舗ID
 - `name`: 店舗名
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-### Menueテーブル
-- `id`: プライマリキー
-- `store_id`: Storeテーブルへの外部キー
-- `name`: 弁当名
+### Menue
+
+- `id`: メニューID
+- `store_id`: 店舗ID
+- `name`: メニュー名
 - `price`: 価格
 - `description`: 説明
 - `is_sold_out`: 売り切れフラグ
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-### UserReservationテーブル
-- `id`: プライマリキー
-- `user_id`: Userテーブルへの外部キー
-- `store_id`: Storeテーブルへの外部キー
-- `menue_id`: Menueテーブルへの外部キー
-- `reserv_time`: 予約時間
+### UserReservation
+
+- `id`: 予約ID
+- `user_id`: ユーザーID
+- `store_id`: 店舗ID
+- `menue_id`: メニューID
+- `reserv_time`: 予約受け取り時間
 - `reserv_cnt`: 予約個数
-- `is_recipt`: 受取済みフラグ
+- `is_recipt`: 受け取り済みフラグ
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-### StoreReservationPolicyテーブル
-- `id`: プライマリキー
-- `store_id`: Storeテーブルへの外部キー
-- `date`: 特定の日付
+### StoreReservationPolicy
+
+- `id`: ポリシーID
+- `store_id`: 店舗ID
+- `date`: 日付
 - `day_of_week`: 曜日
-- `time_slot_interval`: 時間スロットの間隔（分）
-- `max_reservations_per_slot`: 時間スロットあたりの最大予約数
+- `time_slot_interval`: 時間スロット間隔
+- `max_reservations_per_slot`: スロットごとの最大予約数
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-### StoreTimeSlotReservationテーブル
-- `id`: プライマリキー
-- `store_id`: Storeテーブルへの外部キー
-- `date`: 予約日
+### StoreTimeSlotReservation
+
+- `id`: タイムスロット予約ID
+- `store_id`: 店舗ID
+- `date`: 日付
 - `time_slot`: 時間スロット
 - `current_reservations`: 現在の予約数
 - `created_at`: 作成日時
 - `updated_at`: 更新日時
 
-## エンドポイント
+### StoreAdmin
 
-詳細なAPI仕様については、`API-README.md`を参照してください。
+- `id`: 管理者ID
+- `store_id`: 店舗ID
+- `email`: メールアドレス
+- `password`: パスワード
+- `created_at`: 作成日時
+- `updated_at`: 更新日時
 
+## API仕様
+
+詳細は `API-README.md` を参照してください。
