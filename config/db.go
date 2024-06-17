@@ -11,7 +11,6 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	dsn := "root:password@tcp(127.0.0.1:3306)/bentol_db?charset=utf8mb4&parseTime=True&loc=Local"
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -25,6 +24,7 @@ func ConnectDatabase() {
 		&models.UserReservation{},
 		&models.StoreReservationPolicy{},
 		&models.StoreTimeSlotReservation{},
+		&models.StoreManager{},
 	)
 
 	DB = database

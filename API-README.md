@@ -65,6 +65,71 @@
     }
     ```
 
+### 新規店舗登録
+- **URL**: `/store/register`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "store_name": "New Store",
+        "email": "store@email.com",
+        "password": "store-password"
+    }
+    ```
+- **レスポンス**
+    - 成功時: 店舗登録成功メッセージ
+    - 失敗時: エラーメッセージ
+
+### 店舗情報の更新
+- **URL**: `/store/{id}/update`
+- **メソッド**: `PUT`
+- **リクエスト**
+    ```json
+    {
+        "store_name": "Update store name",
+        "policy": {
+            "time_slot_interval": 10,
+            "max_reservations_per_slot": 5
+        }
+    }
+    ```
+- **レスポンス**
+    - 成功時: 店舗情報更新成功メッセージ
+    - 失敗時: エラーメッセージ
+
+### メニュー追加
+- **URL**: `/menue/add`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "store_id": 1,
+        "name": "new bentou",
+        "price": 500,
+        "description": "str 1",
+        "is_sold_out": false
+    }
+    ```
+- **レスポンス**
+    - 成功時: メニュー追加成功メッセージ
+    - 失敗時: エラーメッセージ
+    
+### メニュー更新
+- **URL**: `/menue/{id}/update`
+- **メソッド**: `PUT`
+- **リクエスト**
+    ```json
+    {
+        "name": "update bentou",
+        "price": 600,
+        "descripton": "update",
+        "is_sold_out": false
+    }
+    ```
+- **レスポンス**
+    - 成功時: メニュー更新成功メッセージ
+    - 失敗時: エラーメッセージ
+
 ### 予約ポリシー設定
 - **URL**: `/store/policy`
 - **メソッド**: `POST`
