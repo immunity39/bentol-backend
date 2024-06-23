@@ -22,10 +22,18 @@ func ConnectDatabase() {
 		&models.Store{},
 		&models.Menue{},
 		&models.UserReservation{},
-		&models.StoreReservationPolicy{},
-		&models.StoreTimeSlotReservation{},
-		&models.StoreManager{},
+		&models.StoreVendor{},
+		&models.StoreBasicReservationPolicy{},
+		&models.StoreSpecificReservationPolicy{},
+		&models.StoreSchedule{},
 	)
 
 	DB = database
+}
+
+func GetDB() *gorm.DB {
+	if DB == nil {
+		ConnectDatabase()
+	}
+	return DB
 }

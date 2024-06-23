@@ -47,7 +47,7 @@
     ```
 
 ### 店舗の弁当一覧取得
-- **URL**: `/store/:id`
+- **URL**: `/store/{id}`
 - **メソッド**: `GET`
 - **リクエスト**: なし
 - **レスポンス**
@@ -65,7 +65,7 @@
     }
     ```
 
-### 新規店舗登録
+### 販売者登録
 - **URL**: `/store/register`
 - **メソッド**: `POST`
 - **リクエスト**
@@ -77,24 +77,60 @@
     }
     ```
 - **レスポンス**
-    - 成功時: 店舗登録成功メッセージ
+    - 成功時: 販売者登録成功メッセージ
     - 失敗時: エラーメッセージ
 
-### 店舗情報の更新
+### 販売者ログイン
+- **URL**: /store/login
+- **メソッド**: POST
+- **リクエスト**
+``` json
+    {
+        "store_name": "Store Name",
+        "password": "store_password"
+    }
+    ```
+- **レスポンス**
+    - **成功時**: 販売者ログイン成功メッセージ
+    - **失敗時**: エラーメッセージ
+
+### 店舗基本ポリシー設定
 - **URL**: `/store/{id}/update`
 - **メソッド**: `PUT`
 - **リクエスト**
     ```json
     {
-        "store_name": "Update store name",
+        "store_id": 1,
         "policy": {
+            "day_of_week": 0,
             "time_slot_interval": 10,
-            "max_reservations_per_slot": 5
+            "max_reservations_per_slot": 5,
+            "store_start_time": 11:00,
+            "store_end_time": 15:00
         }
     }
     ```
 - **レスポンス**
     - 成功時: 店舗情報更新成功メッセージ
+    - 失敗時: エラーメッセージ
+
+### 特定予約ポリシー設定
+- **URL**: `/store/{id}/policy`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "store_id": 1,
+        "date": "2024-06-14",
+        "day_of_week": 5,
+        "time_slot_interval": 10,
+        "max_reservations_per_slot": 5,
+        "store_start_time": 10:00,
+        "store_end_time": 18:00
+    }
+    ```
+- **レスポンス**
+    - 成功時: ポリシー設定成功メッセージ
     - 失敗時: エラーメッセージ
 
 ### メニュー追加
@@ -128,23 +164,6 @@
     ```
 - **レスポンス**
     - 成功時: メニュー更新成功メッセージ
-    - 失敗時: エラーメッセージ
-
-### 予約ポリシー設定
-- **URL**: `/store/policy`
-- **メソッド**: `POST`
-- **リクエスト**
-    ```json
-    {
-        "store_id": 1,
-        "date": "2024-06-14",
-        "day_of_week": 5,
-        "time_slot_interval": 10,
-        "max_reservations_per_slot": 5
-    }
-    ```
-- **レスポンス**
-    - 成功時: ポリシー設定成功メッセージ
     - 失敗時: エラーメッセージ
 
 ### 予約の確認および実行

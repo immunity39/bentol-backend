@@ -1,16 +1,13 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type Menue struct {
 	ID          uint `gorm:"primaryKey"`
-	StoreID     uint `gorm:"index"`
-	Name        string
-	Price       int
+	StoreID     uint
+	Name        string `gorm:"type:varchar(100)"`
+	Price       uint
 	Description string
-	IsSoldOut   bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

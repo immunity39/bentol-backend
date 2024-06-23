@@ -1,150 +1,103 @@
 package controllers
 
 import (
+	"bentol/models"
+	"bentol/services"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"bentol/config"
-	"bentol/models"
 )
 
-func RegisterStore(c *gin.Context) {
-	var input struct {
-		StoreName string `json:"store_name" binding:"required"`
-		Email     string `json:"email" binding:"required,email"`
-		Password  string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	store := models.Store{Name: input.StoreName}
-	if err := config.DB.Create(&store).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	storeAdmin := models.StoreAdmin{
-		StoreID:  store.ID,
-		Email:    input.Email,
-		Password: input.Password,
-	}
-
-	if err := config.DB.Create(&storeAdmin).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Store and admin registered successfully"})
-}
-
 func GetStores(c *gin.Context) {
-	var stores []models.Store
-	config.DB.Find(&stores)
+	stores, err := services.GetStores()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"stores": stores})
 }
 
-func GetStoreMenues(c *gin.Context) {
-	var menues []models.Menue
-	storeID := c.Param("id")
-	config.DB.Where("store_id = ?", storeID).Find(&menues)
-	c.JSON(http.StatusOK, gin.H{"menues": menues})
-}
-
-func UpdateStore(c *gin.Context) {
-	storeID, err := strconv.Atoi(c.Param("id"))
+func GetStoreMenus(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid store ID"})
 		return
 	}
 
+	store, menues, err := services.GetStoreMenus(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"store": store, "menues": menues})
+}
+
+func RegisterStore(c *gin.Context) {
 	var input struct {
-		StoreName string `json:"store_name"`
-		Policy    struct {
-			TimeSlotInterval       int `json:"time_slot_interval"`
-			MaxReservationsPerSlot int `json:"max_reservations_per_slot"`
-		} `json:"policy"`
+		Name     string `json:"store_name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
-
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var store models.Store
-	if err := config.DB.First(&store, storeID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Store not found"})
-		return
-	}
-
-	store.Name = input.StoreName
-	if err := config.DB.Save(&store).Error; err != nil {
+	vendor, err := services.RegisterStore(input.Name, input.Email, input.Password)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	policy := models.StoreReservationPolicy{
-		StoreID:                uint(storeID),
-		TimeSlotInterval:       input.Policy.TimeSlotInterval,
-		MaxReservationsPerSlot: input.Policy.MaxReservationsPerSlot,
-		CreatedAt:              time.Now(),
-		UpdatedAt:              time.Now(),
-	}
-
-	if err := config.DB.Save(&policy).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Store and policy updated successfully"})
-
+	c.JSON(http.StatusOK, gin.H{"message": "Store registered successfully", "vendor": vendor})
 }
 
-type PolicyInput struct {
-	StoreID                uint    `json:"store_id" binding:"required"`
-	DayOfWeek              int     `json:"day_of_week"`
-	Date                   *string `json:"date"`
-	TimeSlotInterval       int     `json:"time_slot_interval" binding:"required"`
-	MaxReservationsPerSlot int     `json:"max_reservations_per_slot" binding:"required"`
-}
-
-func SetStorePolicy(c *gin.Context) {
-	var input PolicyInput
+func LoginStore(c *gin.Context) {
+	var input struct {
+		Name     string `json:"store_name"`
+		Password string `json:"password"`
+	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var date *time.Time
-	if input.Date != nil {
-		parsedDate, err := time.Parse("2006-01-02", *input.Date)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
-			return
-		}
-		date = &parsedDate
-	}
-
-	policy := models.StoreReservationPolicy{
-		StoreID:                input.StoreID,
-		DayOfWeek:              input.DayOfWeek,
-		Date:                   date,
-		TimeSlotInterval:       input.TimeSlotInterval,
-		MaxReservationsPerSlot: input.MaxReservationsPerSlot,
-		CreatedAt:              time.Now(),
-		UpdatedAt:              time.Now(),
-	}
-
-	result := config.DB.Create(&policy)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	vendor, err := services.LoginStore(input.Name, input.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Policy set successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "vendor": vendor})
+}
+
+func UpdateStorePolicy(c *gin.Context) {
+	var input models.StoreBasicReservationPolicy
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := services.UpdateStorePolicy(input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Store policy updated successfully"})
+}
+
+func SetSpecificPolicy(c *gin.Context) {
+	var input models.StoreSpecificReservationPolicy
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := services.SetSpecificPolicy(input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Specific policy set successfully"})
 }

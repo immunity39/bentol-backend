@@ -7,24 +7,26 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
-	router := gin.Default()
+	r := gin.Default()
 
-	// User routes
-	router.POST("/registration", controllers.RegisterUser)
-	router.POST("/login", controllers.LoginUser)
+	// ユーザー関連エンドポイント
+	r.POST("/registration", controllers.RegisterUser)
+	r.POST("/login", controllers.LoginUser)
 
-	// Store routes
-	router.GET("/store", controllers.GetStores)
-	router.POST("/store/register", controllers.RegisterStore)
-	router.PUT("/store/:id/update", controllers.UpdateStore)
+	// 店舗関連エンドポイント
+	r.GET("/store", controllers.GetStores)
+	r.GET("/store/:id", controllers.GetStoreMenus)
+	r.POST("/store/register", controllers.RegisterStore)
+	r.POST("/store/login", controllers.LoginStore)
+	r.PUT("/store/:id/update", controllers.UpdateStorePolicy)
+	r.POST("/store/:id/policy", controllers.SetSpecificPolicy)
 
-	// Menu routes
-	router.GET("/store/:id", controllers.GetStoreMenues)
-	router.POST("/menue/add", controllers.AddMenue)
-	router.PUT("/menue/:id/update", controllers.UpdateMenue)
+	// メニュー関連エンドポイント
+	r.POST("/menue/add", controllers.AddMenue)
+	r.PUT("/menue/:id/update", controllers.UpdateMenue)
 
-	// Reservation routes
-	router.POST("/payment", controllers.CheckAndMakeReservation)
+	// 予約関連エンドポイント
+	r.POST("/payment", controllers.MakeReservation)
 
-	return router
+	return r
 }
