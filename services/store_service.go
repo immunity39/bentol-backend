@@ -43,7 +43,7 @@ func RegisterStore(name, email, password string) (models.StoreVendor, error) {
 
 func LoginStore(name, password string) (models.StoreVendor, error) {
 	var vendor models.StoreVendor
-	if err := config.DB.Where("store_name = ? AND password = ?", name, password).First(&vendor).Error; err != nil {
+	if err := config.DB.Where("name = ? AND password = ?", name, password).First(&vendor).Error; err != nil {
 		return models.StoreVendor{}, errors.New("invalid credentials")
 	}
 	return vendor, nil
