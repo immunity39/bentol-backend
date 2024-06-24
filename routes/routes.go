@@ -6,9 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
-	r := gin.Default()
-
+func SetupRouter(r *gin.Engine) {
 	// ユーザー関連エンドポイント
 	r.POST("/registration", controllers.RegisterUser)
 	r.POST("/login", controllers.LoginUser)
@@ -27,6 +25,4 @@ func SetupRouter() *gin.Engine {
 
 	// 予約関連エンドポイント
 	r.POST("/payment", controllers.MakeReservation)
-
-	return r
 }

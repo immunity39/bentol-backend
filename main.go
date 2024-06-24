@@ -13,7 +13,7 @@ func main() {
 
 	r := gin.Default()
 
-	routes.SetupRouter()
+	routes.SetupRouter(r)
 
 	// Cronジョブの開始
 	go cron.StartCronJobs()
