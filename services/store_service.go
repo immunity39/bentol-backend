@@ -28,7 +28,7 @@ func GetStoreMenus(storeID uint) (models.Store, []models.Menue, error) {
 }
 
 func RegisterStore(name, email, password string) (models.StoreVendor, error) {
-	store := models.StoreVendor{Name: name}
+	store := models.Store{Name: name}
 	if err := config.DB.Create(&store).Error; err != nil {
 		return models.StoreVendor{}, err
 	}
@@ -39,6 +39,25 @@ func RegisterStore(name, email, password string) (models.StoreVendor, error) {
 	}
 
 	return vendor, nil
+}
+
+func CreateDefaultSchedule(sid uint) error {
+	for day := 0; day < 7; day++ {
+		policy := models.StoreBasicReservationPolicy{
+			StoreID:                sid,
+			DayOfWeek:              day,
+			TimeSlotInterval:       10,
+			MaxReservationsPerSlot: 10,
+			StoreStartTime:         "12:50",
+			StoreEndTime:           "13:40",
+		}
+
+		if err := config.DB.Create(&policy).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func LoginStore(name, password string) (models.StoreVendor, error) {
@@ -60,5 +79,15 @@ func SetSpecificPolicy(policy models.StoreSpecificReservationPolicy) error {
 	if err := config.DB.Create(&policy).Error; err != nil {
 		return err
 	}
+	return nil
+}
+
+func UpdateCheckStoreReservation() error {
+	/*
+		必要な実装
+		storeが営業時間の時にcron jobが動作してほしい。
+		store_idごとに予約をわけて実装するべきでは？ -> 呼び出し時に store_idを渡す方針のほうがよさそう
+		取得するuser reservationは store_id = id and now_time < reseervation_time and 受け取りフラグ != trueのデータ
+	*/
 	return nil
 }

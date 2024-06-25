@@ -50,6 +50,12 @@ func RegisterStore(c *gin.Context) {
 		return
 	}
 
+	// 初回作成時にdefaultのschedule policyを設定
+	if err := services.CreateDefaultSchedule(vendor.StoreID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Store registered successfully", "vendor": vendor})
 }
 
@@ -100,4 +106,7 @@ func SetSpecificPolicy(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Specific policy set successfully"})
+}
+
+func CheckStoreReservation(c *gin.Context) {
 }
