@@ -109,4 +109,17 @@ func SetSpecificPolicy(c *gin.Context) {
 }
 
 func CheckStoreReservation(c *gin.Context) {
+	var store_id models.Store
+	if err := c.ShouldBindJSON(&store_id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	reservation, err := services.UpdateCheckStoreReservation(store_id.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Check store reservation successfully", "reservation": reservation})
 }

@@ -4,6 +4,7 @@ import (
 	"bentol/config"
 	"bentol/models"
 	"errors"
+	"time"
 )
 
 func GetStores() ([]models.Store, error) {
@@ -82,12 +83,12 @@ func SetSpecificPolicy(policy models.StoreSpecificReservationPolicy) error {
 	return nil
 }
 
-func UpdateCheckStoreReservation() error {
-	/*
-		必要な実装
-		storeが営業時間の時にcron jobが動作してほしい。
-		store_idごとに予約をわけて実装するべきでは？ -> 呼び出し時に store_idを渡す方針のほうがよさそう
-		取得するuser reservationは store_id = id and now_time < reseervation_time and 受け取りフラグ != trueのデータ
-	*/
-	return nil
+func UpdateCheckStoreReservation(store uint) ([]models.UserReservation, error) {
+	var reservation []models.UserReservation
+	var now_time = time.Now()
+	var resipt = false
+	if err := config.DB.Where("store_id = ? AND reserv_time > ? AND is_recipt = ?", store, now_time, resipt).Find(&reservation).Error; err != nil {
+		return []models.UserReservation{}, err
+	}
+	return reservation, nil
 }
