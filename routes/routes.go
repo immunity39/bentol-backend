@@ -25,7 +25,7 @@ func SetupRouter(r *gin.Engine) {
 	// r.GET("/menue/:id")
 	r.POST("/menue/create", controllers.AddMenue)
 	r.PUT("/menue/:id/update", controllers.UpdateMenue)
-	r.DELETE("/menue/:id/delete")
+	// r.DELETE("/menue/:id/delete")
 
 	// 予約関連エンドポイント
 	r.POST("/payment", controllers.MakeReservation)
@@ -33,10 +33,10 @@ func SetupRouter(r *gin.Engine) {
 	// r.DELETE("/payment/:id/delete")
 
 	// paypay api関連エンドポイント
-	// r.POST("/pay", controllers.PayPayPay)
+	r.POST("/pay", controllers.PayPayPay)
 
 	// 予約確認エンドポイント
-	r.GET("/store/reservation", controllers.CheckStoreReservation) // cron jobで数分おきに実行
+	r.GET("/store/reservation", controllers.CheckStoreReservation)
 	// r.GET("/store/reservation/:id")
 	// r.DELETE("/store/reservation/:id/delete")
 }
