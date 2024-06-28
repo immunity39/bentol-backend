@@ -2,6 +2,7 @@
 
 ## エンドポイント一覧
 
+## ユーザー関連エンドポイント
 ### ユーザー登録
 - **URL**: `/registration`
 - **メソッド**: `POST`
@@ -50,21 +51,22 @@
 - **URL**: `/store/{id}`
 - **メソッド**: `GET`
 - **リクエスト**: なし
-- **レスポンス**
+- **レスポンス** // 多少レスポンスの形式が違うようなので注意
     ```json
     {
         "store": {
             "id": 1,
             "name": "store_1",
             "menues": [
-                {"id": 1, "name": "bentou_1", "price": 500, "description": "desc", "is_sold_out": false},
-                {"id": 2, "name": "bentou_2", "price": 600, "description": "desc", "is_sold_out": false},
+                {"id": 1, "name": "bentou_1", "price": 500, "description": "desc", "is_sold_out": 0},
+                {"id": 2, "name": "bentou_2", "price": 600, "description": "desc", "is_sold_out": 0},
                 ...
             ]
         }
     }
     ```
 
+## 店舗関連エンドポイント
 ### 販売者登録
 - **URL**: `/store/register`
 - **メソッド**: `POST`
@@ -84,7 +86,7 @@
 - **URL**: /store/login
 - **メソッド**: POST
 - **リクエスト**
-``` json
+    ``` json
     {
         "store_name": "Store Name",
         "password": "store_password"
@@ -133,8 +135,9 @@
     - 成功時: ポリシー設定成功メッセージ
     - 失敗時: エラーメッセージ
 
+## メニュー関連エンドポイント
 ### メニュー追加
-- **URL**: `/menue/add`
+- **URL**: `/menue/create`
 - **メソッド**: `POST`
 - **リクエスト**
     ```json
@@ -143,7 +146,7 @@
         "name": "new bentou",
         "price": 500,
         "description": "str 1",
-        "is_sold_out": false
+        "is_sold_out": 0
     }
     ```
 - **レスポンス**
@@ -159,13 +162,14 @@
         "name": "update bentou",
         "price": 600,
         "descripton": "update",
-        "is_sold_out": false
+        "is_sold_out": 0
     }
     ```
 - **レスポンス**
     - 成功時: メニュー更新成功メッセージ
     - 失敗時: エラーメッセージ
 
+## 予約関連エンドポイント
 ### 予約の確認および実行
 - **URL**: `/payment`
 - **メソッド**: `POST`
@@ -183,6 +187,38 @@
 - **レスポンス**
     - 成功時: 予約成功メッセージ
     - 失敗時: エラーメッセージ（予約リミット超過など）
+
+## paypay api関連エンドポイント
+- **URL**: `/pay`
+- **メソッド**: `POST`
+- **リクエスト**
+    ```json
+    {
+        "user_id": 1,
+        "store_id": 1,
+        "menue_id": 1,
+        "reserv_time": "12:10",
+        "reserv_cnt": 2,
+        "is_recipt": 0,
+        "total_amount": 1000
+    }
+    ```
+- **レスポンス**
+    - 成功時: 予約成功メッセージ
+    - 失敗時: エラー
+
+## 予約確認エンドポイント
+- **URL**: `/store/reservation`
+- **メソッド**: `GET`
+- **リクエスト**
+    ```json
+    {
+        "store_id": 1
+    }
+    ```
+- **レスポンス**
+    - 成功時: 予約成功メッセージ
+    - 失敗時: エラーメッセージ
 
 ## 注意事項
 

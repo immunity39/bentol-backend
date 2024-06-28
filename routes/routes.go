@@ -34,6 +34,7 @@ func SetupRouter(r *gin.Engine) {
 
 	// paypay api関連エンドポイント
 	r.POST("/pay", controllers.PayPayPay)
+	// r.POST("/cancel", controllers.PayPayCancel)
 
 	// 予約確認エンドポイント
 	r.GET("/store/reservation", controllers.CheckStoreReservation)
