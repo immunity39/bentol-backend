@@ -7,7 +7,7 @@ type StoreVendor struct {
 	StoreID   uint
 	Name      string `gorm:"type:varchar(100)"`
 	Email     string `gorm:"type:varchar(100)"`
-	Password  string `gorm:"type:varchar(100)"`
+	Password  string `gorm:"type:varchar(100);unique"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
