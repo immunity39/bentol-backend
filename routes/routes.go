@@ -3,13 +3,20 @@ package routes
 import (
 	"bentol/controllers"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(r *gin.Engine) {
+	// session, cookie setting
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
+
 	// ユーザー関連エンドポイント
 	r.POST("/registration", controllers.RegisterUser)
 	r.POST("/login", controllers.LoginUser)
+	// r.GET("/logout", controllers.LogoutUser)
 	// r.PUT("/user/:id/update")
 	r.GET("/store", controllers.GetStores)
 	r.GET("/store/:id", controllers.GetStoreMenus)
@@ -17,6 +24,7 @@ func SetupRouter(r *gin.Engine) {
 	// 店舗関連エンドポイント
 	r.POST("/store/register", controllers.RegisterStore)
 	r.POST("/store/login", controllers.LoginStore)
+	// r.GET("/store/logout", controllers.LogoutStore)
 	// r.GET("/store/:id/info")
 	r.PUT("/store/:id/update", controllers.UpdateStorePolicy)
 	r.POST("/store/:id/policy", controllers.SetSpecificPolicy)
