@@ -16,8 +16,8 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://133.14.14.14:8080",
-			"https://133.14.14.14:8080",
+			"http://133.14.14.14",
+			"https://133.14.14.14",
 		},
 		AllowMethods: []string{
 			"POST",
