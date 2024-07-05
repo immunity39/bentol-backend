@@ -18,6 +18,8 @@ func main() {
 		AllowOrigins: []string{
 			"http://133.14.14.14:8080",
 			"https://133.14.14.14:8080",
+			"http://bentol.rd.dendai.ac.jp",
+			"https://bentol.rd.dendai.ac.jp",
 		},
 		AllowMethods: []string{
 			"POST",
