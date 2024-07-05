@@ -5,6 +5,8 @@ import (
 	"bentol/models"
 	"errors"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetStores() ([]models.Store, error) {
@@ -34,7 +36,12 @@ func RegisterStore(name, email, password string) (models.StoreVendor, error) {
 		return models.StoreVendor{}, err
 	}
 
-	vendor := models.StoreVendor{StoreID: store.ID, Name: name, Email: email, Password: password}
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.StoreVendor{}, err
+	}
+
+	vendor := models.StoreVendor{StoreID: store.ID, Name: name, Email: email, Password: string(hashPassword)}
 	if err := config.DB.Create(&vendor).Error; err != nil {
 		return models.StoreVendor{}, err
 	}
@@ -63,9 +70,14 @@ func CreateDefaultSchedule(sid uint) error {
 
 func LoginStore(name, password string) (models.StoreVendor, error) {
 	var vendor models.StoreVendor
-	if err := config.DB.Where("name = ? AND password = ?", name, password).First(&vendor).Error; err != nil {
-		return models.StoreVendor{}, errors.New("invalid credentials")
+	if err := config.DB.Where("name = ?", name).First(&vendor).Error; err != nil {
+		return models.StoreVendor{}, errors.New("vendor not found")
 	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(vendor.Password), []byte(password)); err != nil {
+		return models.StoreVendor{}, errors.New("incorrect password")
+	}
+
 	return vendor, nil
 }
 

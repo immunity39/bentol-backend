@@ -13,7 +13,7 @@ func CreateWeeklySchedules() error {
 
 	// 1週間先までのスケジュールを作成
 	for i := 0; i < 7; i++ {
-		date := today.AddDate(0, 0, i+1).Format("2006-01-02")
+		date := today.AddDate(0, 0, i).Format("2006-01-02")
 		weekday := (today.AddDate(0, 0, i+1).Weekday() + 6) % 7 // 月曜日を0とする
 
 		var stores []models.Store
@@ -56,7 +56,7 @@ func UpdateSpecificSchedules() error {
 
 	// 1週間先までのスケジュールを更新
 	for i := 0; i < 7; i++ {
-		date := today.AddDate(0, 0, i+1).Format("2006-01-02")
+		date := today.AddDate(0, 0, i).Format("2006-01-02")
 
 		var specificPolicies []models.StoreSpecificReservationPolicy
 		if err := config.DB.Where("date = ?", date).Find(&specificPolicies).Error; err != nil {
