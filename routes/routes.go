@@ -41,6 +41,7 @@ func SetupRouter(r *gin.Engine) {
 	// r.DELETE("/payment/:id/delete")
 
 	// paypay api関連エンドポイント
+	// https://pkg.go.dev/github.com/mythrnr/paypayopa-sdk-go
 	r.POST("/pay", controllers.PayPayPay)
 	// r.POST("/cancel", controllers.PayPayCancel)
 
