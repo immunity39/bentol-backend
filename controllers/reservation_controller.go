@@ -33,6 +33,7 @@ func MakeReservation(c *gin.Context) {
 
 func PayPayPay(c *gin.Context) {
 	var payment struct {
+		ReservID    uint   `json:"reservation_id"`
 		UserID      uint   `json:"user_id"`
 		StoreID     uint   `json:"store_id"`
 		MenueID     uint   `json:"menue_id"`
@@ -46,7 +47,7 @@ func PayPayPay(c *gin.Context) {
 		return
 	}
 
-	err := services.ProcessPayment(payment.UserID, payment.StoreID, payment.MenueID, payment.ReservTime, payment.ReservCnt, payment.IsRecipt, payment.TotalAmount)
+	err := services.ProcessPayment(payment.ReservID, payment.UserID, payment.StoreID, payment.MenueID, payment.ReservTime, payment.ReservCnt, payment.IsRecipt, payment.TotalAmount)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

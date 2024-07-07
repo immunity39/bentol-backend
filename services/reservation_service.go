@@ -43,8 +43,9 @@ func MakeReservation(userID, storeID, menueID uint, reservTime string, count uin
 	return reservation, nil
 }
 
-func ProcessPayment(UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint, IsRecipt bool, TotalAmount uint) error {
+func ProcessPayment(ReservID, UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint, IsRecipt bool, TotalAmount uint) error {
 	var PaymentRequest struct {
+		ReservID    uint    `json:"reserv_id"`
 		UserID      uint    `json:"user_id"`
 		StoreID     uint    `json:"store_id"`
 		MenueID     uint    `json:"menue_id"`

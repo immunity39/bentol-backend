@@ -194,6 +194,7 @@
 - **リクエスト**
     ```json
     {
+        "reservation_id": 1,
         "user_id": 1,
         "store_id": 1,
         "menue_id": 1,
