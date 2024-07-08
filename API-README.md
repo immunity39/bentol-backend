@@ -146,7 +146,7 @@
         "name": "new bentou",
         "price": 500,
         "description": "str 1",
-        "is_sold_out": 0
+        "is_sold_out": false
     }
     ```
 - **レスポンス**
@@ -171,7 +171,7 @@
 
 ## 予約関連エンドポイント
 ### 予約の確認および実行
-- **URL**: `/payment`
+- **URL**: `/payment` // 成功しないときに成功しててだめ
 - **メソッド**: `POST`
 - **リクエスト**
     ```json
@@ -189,7 +189,9 @@
     - 失敗時: エラーメッセージ（予約リミット超過など）
 
 ## paypay api関連エンドポイント
-- **URL**: `/pay`
+// https://pkg.go.dev/github.com/mythrnr/paypayopa-sdk-go
+### 予約
+- **URL**: `/pay` // 形式を少し変える可能性が高い
 - **メソッド**: `POST`
 - **リクエスト**
     ```json
@@ -200,16 +202,19 @@
         "menue_id": 1,
         "reserv_time": "12:10",
         "reserv_cnt": 2,
-        "is_recipt": 0,
-        "total_amount": 1000
+        "is_recipt": false,
+        // "total_amount": 1000
     }
     ```
 - **レスポンス**
     - 成功時: 予約成功メッセージ
     - 失敗時: エラー
 
+### 予約キャンセル
+### 払い戻し
+
 ## 予約確認エンドポイント
-- **URL**: `/store/reservation`
+- **URL**: `/store/reservation` // /store/reservation/:store_idになる可能性がある
 - **メソッド**: `GET`
 - **リクエスト**
     ```json

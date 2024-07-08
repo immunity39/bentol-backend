@@ -3,10 +3,10 @@ package services
 import (
 	"bentol/config"
 	"bentol/models"
-	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os/exec"
 	"time"
 )
 
@@ -67,7 +67,7 @@ func ProcessPayment(ReservID, UserID, StoreID, MenueID uint, ReservTime string, 
 		return err
 	}
 
-	resp, err := http.Post("http://localhost:5000/pay", "application/json", bytes.NewBuffer(requestBody))
+	resp, err := exec.Command("node ./pay/paypayapi.js", string(requestBody)).Output()
 	if err != nil {
 		return err
 	}
