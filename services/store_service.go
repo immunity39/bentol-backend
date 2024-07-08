@@ -4,7 +4,6 @@ import (
 	"bentol/config"
 	"bentol/models"
 	"errors"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,20 +16,20 @@ func GetStores() ([]models.Store, error) {
 	return stores, nil
 }
 
-func GetStoreMenus(storeID uint) (models.Store, []models.Menue, error) {
+func GetStoreMenus(storeID uint) ([]models.Menue, error) {
 	var store models.Store
 	var menues []models.Menue
 
 	if err := config.DB.First(&store, storeID).Error; err != nil {
-		return models.Store{}, nil, errors.New("store not found")
+		return nil, errors.New("store not found")
 	}
 	if err := config.DB.Where("store_id = ?", storeID).Find(&menues).Error; err != nil {
-		return store, nil, err
+		return nil, err
 	}
-	return store, menues, nil
+	return menues, nil
 }
 
-func RegisterStore(name, email, password string) (models.StoreVendor, error) {
+func RegisterStore(name, mail, password string) (models.StoreVendor, error) {
 	store := models.Store{Name: name}
 	if err := config.DB.Create(&store).Error; err != nil {
 		return models.StoreVendor{}, err
@@ -41,7 +40,7 @@ func RegisterStore(name, email, password string) (models.StoreVendor, error) {
 		return models.StoreVendor{}, err
 	}
 
-	vendor := models.StoreVendor{StoreID: store.ID, Name: name, Email: email, Password: string(hashPassword)}
+	vendor := models.StoreVendor{StoreID: store.ID, Name: name, Mail: mail, Password: string(hashPassword)}
 	if err := config.DB.Create(&vendor).Error; err != nil {
 		return models.StoreVendor{}, err
 	}
@@ -68,9 +67,9 @@ func CreateDefaultSchedule(sid uint) error {
 	return nil
 }
 
-func LoginStore(name, password string) (models.StoreVendor, error) {
+func LoginStore(mail, password string) (models.StoreVendor, error) {
 	var vendor models.StoreVendor
-	if err := config.DB.Where("name = ?", name).First(&vendor).Error; err != nil {
+	if err := config.DB.Where("mail = ?", mail).First(&vendor).Error; err != nil {
 		return models.StoreVendor{}, errors.New("vendor not found")
 	}
 
@@ -97,10 +96,21 @@ func SetSpecificPolicy(policy models.StoreSpecificReservationPolicy) error {
 
 func UpdateCheckStoreReservation(store uint) ([]models.UserReservation, error) {
 	var reservation []models.UserReservation
-	var now_time = time.Now()
 	var resipt = false
-	if err := config.DB.Where("store_id = ? AND reserv_time > ? AND is_recipt = ?", store, now_time, resipt).Find(&reservation).Error; err != nil {
+	if err := config.DB.Where("store_id = ? AND is_recipt = ?", store, resipt).Find(&reservation).Error; err != nil {
 		return []models.UserReservation{}, err
 	}
 	return reservation, nil
+}
+
+func ShipReservation(reservationID uint) error {
+	var reservation models.UserReservation
+	if err := config.DB.Where("id = ?", reservationID).First(&reservation).Error; err != nil {
+		return errors.New("reservation not found")
+	}
+	reservation.IsRecipt = true
+	if err := config.DB.Save(&reservation).Error; err != nil {
+		return err
+	}
+	return nil
 }

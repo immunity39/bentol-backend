@@ -30,7 +30,7 @@ func RegisterUser(c *gin.Context) {
 
 func LoginUser(c *gin.Context) {
 	var input struct {
-		Name     string `json:"name"`
+		Mail     string `json:"mail"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -38,7 +38,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.LoginUser(input.Name, input.Password)
+	user, err := services.LoginUser(input.Mail, input.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
