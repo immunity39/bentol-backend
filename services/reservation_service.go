@@ -49,11 +49,23 @@ func MakeReservation(userID, storeID, menueID uint, resDate, resTime string, cou
 		return models.UserReservation{}, errors.New("create user reservation missed")
 	}
 
-	if err := config.DB.Model(&models.StoreSchedule{}).Where("id = ?", policy.ID).Update("current_reservations", count+uint(policy.CurrentReservations)).Error; err != nil {
-		return models.UserReservation{}, errors.New("update store schedule missed")
+	return reservation, nil
+}
+
+func CurrentReservationUpdate(ReservID, ReservCnt uint) (string, error) {
+	var err error
+	schedule := models.StoreSchedule{}
+	err = config.DB.Model(&models.StoreSchedule{}).Where("id = ?", ReservID).First(&schedule).Error
+	if err != nil {
+		return "", err
 	}
 
-	return reservation, nil
+	err = config.DB.Model(&models.StoreSchedule{}).Where("id = ?", schedule.ID).Update("current_reservations", schedule.CurrentReservations+int(ReservCnt)).Error
+	if err != nil {
+		return "", err
+	}
+
+	return "", nil
 }
 
 func ProcessPayment(ReservID, UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint) (string, error) {
@@ -101,11 +113,20 @@ func CancelReservation(ReservID uint) error {
 		return err
 	}
 
-	if err := config.DB.Delete(&reservation).Error; err != nil {
-		return err
+	return nil
+}
+
+func ReservationDelete(ReservID uint) (string, error) {
+	reservation := models.UserReservation{}
+	if err := config.DB.Find(&reservation, ReservID).Error; err != nil {
+		return "", err
 	}
 
-	return nil
+	if err := config.DB.Delete(&reservation).Error; err != nil {
+		return "", err
+	}
+
+	return "", nil
 }
 
 func RefundPayment(ReservID uint) error {

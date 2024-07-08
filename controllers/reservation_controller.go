@@ -33,7 +33,12 @@ func MakeReservation(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// DBへの登録作業はここで行いたい
+
+	_, err = services.CurrentReservationUpdate(reservation.ID, input.Count)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Reservation successful", "URL": url})
 }
@@ -42,14 +47,9 @@ func CancelReservation(c *gin.Context) {
 	var input struct {
 		ReservID uint `json:"reservation_id"`
 	}
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var err error
+	if err = c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err := services.CancelReservation(input.ReservID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -58,7 +58,18 @@ func CancelReservation(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// DBへの登録作業はここで行いたい
+
+	err = services.CancelReservation(input.ReservID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err = services.ReservationDelete(input.ReservID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Refund successful"})
 }
