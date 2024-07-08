@@ -16,8 +16,8 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://133.14.14.14:8080",
-			"https://133.14.14.14:8080",
+			"http://133.14.14.14:8090",
+			"https://133.14.14.14:8090",
 			"http://bentol.rd.dendai.ac.jp",
 			"https://bentol.rd.dendai.ac.jp",
 		},
@@ -46,5 +46,5 @@ func main() {
 	// Cronジョブの開始
 	go cron.StartCronJobs()
 
-	r.Run(":8080")
+	r.Run(":8090")
 }
