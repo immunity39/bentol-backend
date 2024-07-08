@@ -33,6 +33,32 @@ func MakeReservation(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// DBへの登録作業はここで行いたい
 
 	c.JSON(http.StatusOK, gin.H{"message": "Reservation successful", "URL": url})
+}
+
+func CancelReservation(c *gin.Context) {
+	var input struct {
+		ReservID uint `json:"reservation_id"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := services.CancelReservation(input.ReservID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = services.RefundPayment(input.ReservID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// DBへの登録作業はここで行いたい
+
+	c.JSON(http.StatusOK, gin.H{"message": "Refund successful"})
 }
