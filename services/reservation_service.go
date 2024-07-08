@@ -43,6 +43,14 @@ func MakeReservation(userID, storeID, menueID uint, reservTime string, count uin
 	return reservation, nil
 }
 
+// remake
+/*
+get menue
+totalamount = count * menue.price
+description = menue.name
+
+pay/payment.goを呼び出す + 支払いのuuid を保持する必要があればDBの形式を変えること
+*/
 func ProcessPayment(ReservID, UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint, IsRecipt bool, TotalAmount uint) error {
 	var PaymentRequest struct {
 		ReservID    uint    `json:"reserv_id"`

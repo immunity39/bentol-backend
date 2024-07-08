@@ -40,10 +40,6 @@ func SetupRouter(r *gin.Engine) {
 	// r.PUT("/payment/:id/update")
 	// r.DELETE("/payment/:id/delete")
 
-	// paypay api関連エンドポイント
-	r.POST("/pay", controllers.PayPayPay)
-	// r.POST("/cancel", controllers.PayPayCancel)
-
 	// 予約確認エンドポイント
 	r.GET("/store/reservation", controllers.CheckStoreReservation)
 	// r.GET("/store/reservation/:id")
