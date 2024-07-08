@@ -37,11 +37,10 @@ func SetupRouter(r *gin.Engine) {
 
 	// 予約関連エンドポイント
 	r.POST("/payment", controllers.MakeReservation)
-	// r.PUT("/payment/:id/update")
-	// r.DELETE("/payment/:id/delete")
+	r.POST("/payment/:id/cancel", controllers.CancelReservation)
 
 	// 予約確認エンドポイント
 	r.GET("/store/reservation", controllers.CheckStoreReservation)
+	r.DELETE("/store/reservation/delete", controllers.ShipReservation)
 	// r.GET("/store/reservation/:id")
-	// r.DELETE("/store/reservation/:id/delete")
 }
