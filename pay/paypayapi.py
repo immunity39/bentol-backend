@@ -21,7 +21,7 @@ def pay():
         "Authorization": "Bearer YOUR_PAYPAY_API_KEY"
     }
     payload = {
-        "merchantPaymentId": f"{user_id}-{store_id}-{menue_id}",
+        "merchantPaymentId": f"",
         "amount": {
             "amount": total_amount,
             "currency": "JPY"
@@ -32,7 +32,7 @@ def pay():
                 "name": "Bento",
                 "quantity": reserv_cnt,
                 "unit_price": {
-                    "amount": total_amount / reserv_cnt,
+                    "amount": total_amount,
                     "currency": "JPY"
                 }
             }

@@ -21,36 +21,44 @@ func MakeReservation(c *gin.Context) {
 		return
 	}
 
-	reservTime := input.Date + " " + input.Time
-	reservation, err := services.MakeReservation(input.UserID, input.StoreID, input.MenueID, reservTime, input.Count)
+	reservation, err := services.MakeReservation(input.UserID, input.StoreID, input.MenueID, input.Date, input.Time, input.Count)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Reservation successful", "reservation": reservation})
+	reservTime := input.Date + " " + input.Time
+	url, err := services.ProcessPayment(reservation.ID, input.UserID, input.StoreID, input.MenueID, reservTime, input.Count)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// DBへの登録作業はここで行いたい
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reservation successful", "URL": url})
 }
 
-func PayPayPay(c *gin.Context) {
-	var payment struct {
-		UserID      uint   `json:"user_id"`
-		StoreID     uint   `json:"store_id"`
-		MenueID     uint   `json:"menue_id"`
-		ReservTime  string `json:"reserv_time"`
-		ReservCnt   uint   `json:"reserv_cnt"`
-		IsRecipt    bool   `json:"is_recipt"`
-		TotalAmount uint   `json:"total_amount"`
+func CancelReservation(c *gin.Context) {
+	var input struct {
+		ReservID uint `json:"reservation_id"`
 	}
-	if err := c.ShouldBindJSON(&payment); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := services.ProcessPayment(payment.UserID, payment.StoreID, payment.MenueID, payment.ReservTime, payment.ReservCnt, payment.IsRecipt, payment.TotalAmount)
+	err := services.CancelReservation(input.ReservID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Payment processed successfully"})
+	err = services.RefundPayment(input.ReservID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// DBへの登録作業はここで行いたい
+
+	c.JSON(http.StatusOK, gin.H{"message": "Refund successful"})
 }

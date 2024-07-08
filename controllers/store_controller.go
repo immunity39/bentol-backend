@@ -25,18 +25,18 @@ func GetStoreMenus(c *gin.Context) {
 		return
 	}
 
-	store, menues, err := services.GetStoreMenus(uint(id))
+	menues, err := services.GetStoreMenus(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"store": store, "menues": menues})
+	c.JSON(http.StatusOK, gin.H{"menues": menues})
 }
 
 func RegisterStore(c *gin.Context) {
 	var input struct {
 		Name     string `json:"store_name"`
-		Email    string `json:"email"`
+		Mail     string `json:"mail"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -44,7 +44,7 @@ func RegisterStore(c *gin.Context) {
 		return
 	}
 
-	vendor, err := services.RegisterStore(input.Name, input.Email, input.Password)
+	vendor, err := services.RegisterStore(input.Name, input.Mail, input.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -61,7 +61,7 @@ func RegisterStore(c *gin.Context) {
 
 func LoginStore(c *gin.Context) {
 	var input struct {
-		Name     string `json:"store_name"`
+		Mail     string `json:"mail"`
 		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -69,7 +69,7 @@ func LoginStore(c *gin.Context) {
 		return
 	}
 
-	vendor, err := services.LoginStore(input.Name, input.Password)
+	vendor, err := services.LoginStore(input.Mail, input.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -122,4 +122,19 @@ func CheckStoreReservation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Check store reservation successfully", "reservation": reservation})
+}
+
+func ShipReservation(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("reservation_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid reservation ID"})
+		return
+	}
+
+	if err := services.ShipReservation(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reservation shipped successfully"})
 }
