@@ -6,6 +6,8 @@ import (
 	"bentol/routes"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,6 +42,10 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           86400,
 	}))
+
+	// session, cookie setting
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
 
 	routes.SetupRouter(r)
 

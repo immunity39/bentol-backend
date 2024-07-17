@@ -3,44 +3,52 @@ package routes
 import (
 	"bentol/controllers"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(r *gin.Engine) {
-	// session, cookie setting
-	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
 	// ユーザー関連エンドポイント
 	r.POST("/registration", controllers.RegisterUser)
 	r.POST("/login", controllers.LoginUser)
-	// r.GET("/logout", controllers.LogoutUser)
-	// r.PUT("/user/:id/update")
-	r.GET("/store", controllers.GetStores)
-	r.GET("/store/:id", controllers.GetStoreMenus)
+
+	// session check
+	user := r.Group("/").Use(controllers.UserAuthRequired())
+	{
+		// user.PUT("/user/:id/update")
+		user.GET("/store", controllers.GetStores)
+		user.GET("/store/:id", controllers.GetStoreMenus)
+
+		// 予約関連エンドポイント
+		user.POST("/payment", controllers.MakeReservation)
+		// user.POST("/payment/:id/cancel", controllers.CancelReservation)
+
+		// 予約確認エンドポイント
+		user.GET("/user/:id/reservation", controllers.GetUserReservation)
+	}
+	r.POST("/logout", controllers.LogoutUser)
 
 	// 店舗関連エンドポイント
 	r.POST("/store/register", controllers.RegisterStore)
 	r.POST("/store/login", controllers.LoginStore)
-	// r.GET("/store/logout", controllers.LogoutStore)
-	// r.GET("/store/:id/info")
-	r.PUT("/store/:id/update", controllers.UpdateStorePolicy)
-	r.POST("/store/:id/policy", controllers.SetSpecificPolicy)
 
-	// メニュー関連エンドポイント
-	// r.GET("/menue/:id")
-	r.POST("/menue/create", controllers.AddMenue)
-	r.PUT("/menue/:id/update", controllers.UpdateMenue)
-	// r.DELETE("/menue/:id/delete")
+	// session check
+	store := r.Group("/").Use(controllers.StoreAuthRequired())
+	{
+		// store.GET("/store/:id/info")
+		store.PUT("/store/:id/update", controllers.UpdateStorePolicy)
+		store.POST("/store/:id/policy", controllers.SetSpecificPolicy)
 
-	// 予約関連エンドポイント
-	r.POST("/payment", controllers.MakeReservation)
-	// r.POST("/payment/:id/cancel", controllers.CancelReservation)
+		// メニュー関連エンドポイント
+		// store.GET("/menue/:id")
+		store.POST("/menue/create", controllers.AddMenue)
+		store.PUT("/menue/:id/update", controllers.UpdateMenue)
+		// store.DELETE("/menue/:id/delete")
 
-	// 予約確認エンドポイント
-	r.GET("/store/reservation", controllers.CheckStoreReservation)
-	r.DELETE("/store/reservation/delete", controllers.ShipReservation)
-	// r.GET("/store/reservation/:id")
+		// 予約確認エンドポイント
+		store.GET("/store/reservation", controllers.CheckStoreReservation)
+		// store.GET("/store/reservation/:id")
+		store.DELETE("/store/reservation/delete", controllers.ShipReservation)
+	}
+	r.POST("/store/logout", controllers.LogoutStore)
+
 }

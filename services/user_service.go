@@ -52,3 +52,11 @@ func GenerateJWT(userID uint) (string, error) {
 	}
 	return tokenStr, err
 }
+
+func GetUserReservation(reservationID, userID string) ([]models.UserReservation, error) {
+	var reservations []models.UserReservation
+	if err := config.DB.Where("id = ? AND user_id = ?", reservationID, userID).Find(&reservations).Error; err != nil {
+		return []models.UserReservation{}, err
+	}
+	return reservations, nil
+}
