@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,6 +57,8 @@ func RegisterStore(c *gin.Context) {
 		return
 	}
 
+	setStoreSession(c, vendor.StoreID)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Store registered successfully", "vendor": vendor})
 }
 
@@ -75,7 +78,39 @@ func LoginStore(c *gin.Context) {
 		return
 	}
 
+	setStoreSession(c, vendor.StoreID)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "vendor": vendor})
+}
+
+func setStoreSession(c *gin.Context, storeID uint) {
+	session := sessions.Default(c)
+
+	session.Set("storeID", storeID)
+	session.Set("role", "store")
+	session.Save()
+}
+
+func StoreAuthRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		storeID := session.Get("storeID")
+		role := session.Get("role")
+		if storeID == nil || role != "store" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+func LogoutStore(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Clear()
+	session.Save()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
 
 func UpdateStorePolicy(c *gin.Context) {
