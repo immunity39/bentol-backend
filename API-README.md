@@ -24,7 +24,7 @@
 - **リクエスト**
     ```json
     {
-        "name": "user-name",
+        "mail": "user@email.com",
         "password": "user-password"
     }
     ```
@@ -51,18 +51,29 @@
 - **URL**: `/store/{id}`
 - **メソッド**: `GET`
 - **リクエスト**: なし
-- **レスポンス** // 多少レスポンスの形式が違うようなので注意
+- **レスポンス**
     ```json
     {
-        "store": {
-            "id": 1,
-            "name": "store_1",
-            "menues": [
-                {"id": 1, "name": "bentou_1", "price": 500, "description": "desc", "is_sold_out": 0},
-                {"id": 2, "name": "bentou_2", "price": 600, "description": "desc", "is_sold_out": 0},
-                ...
-            ]
-        }
+        "menues": [
+            {
+                "ID": 1,
+                "StoreID": 1,
+                "Name": "bentou-1",
+                "Price": 600,
+                "Description": "食べれます",
+                "CreatedAt": "2024-07-07T21:32:23.713+09:00",
+                "UpdatedAt": "2024-07-07T21:34:29.041+09:00"
+            },
+            {
+                "ID": 2,
+                "StoreID": 1,
+                "Name": "bentou-2",
+                "Price": 550,
+                "Description": "derisious!",
+                "CreatedAt": "2024-07-09T01:49:27.875+09:00",
+                "UpdatedAt": "2024-07-09T01:49:27.875+09:00"
+            }
+        ]
     }
     ```
 
@@ -74,7 +85,7 @@
     ```json
     {
         "store_name": "New Store",
-        "email": "store@email.com",
+        "mail": "store@email.com",
         "password": "store-password"
     }
     ```
@@ -83,12 +94,12 @@
     - 失敗時: エラーメッセージ
 
 ### 販売者ログイン
-- **URL**: /store/login
-- **メソッド**: POST
+- **URL**: `/store/login`
+- **メソッド**: `POST`
 - **リクエスト**
     ``` json
     {
-        "store_name": "Store Name",
+        "mail": "store@email.com",
         "password": "store_password"
     }
     ```
@@ -146,7 +157,7 @@
         "name": "new bentou",
         "price": 500,
         "description": "str 1",
-        "is_sold_out": 0
+        "is_sold_out": false
     }
     ```
 - **レスポンス**
@@ -185,29 +196,12 @@
     }
     ```
 - **レスポンス**
-    - 成功時: 予約成功メッセージ
+    - 成功時: paypayの支払先URL
     - 失敗時: エラーメッセージ（予約リミット超過など）
 
-## paypay api関連エンドポイント
-- **URL**: `/pay`
-- **メソッド**: `POST`
-- **リクエスト**
-    ```json
-    {
-        "user_id": 1,
-        "store_id": 1,
-        "menue_id": 1,
-        "reserv_time": "12:10",
-        "reserv_cnt": 2,
-        "is_recipt": 0,
-        "total_amount": 1000
-    }
-    ```
-- **レスポンス**
-    - 成功時: 予約成功メッセージ
-    - 失敗時: エラー
-
 ## 予約確認エンドポイント
+### 予約確認
+## **ポーリングの設定はfront側で行う**
 - **URL**: `/store/reservation`
 - **メソッド**: `GET`
 - **リクエスト**
@@ -218,6 +212,20 @@
     ```
 - **レスポンス**
     - 成功時: 予約成功メッセージ
+    - 失敗時: エラーメッセージ
+
+### 受け渡し
+店舗側が予約確認によって表示された予約チケットに対し、受け渡しが完了した際に実行
+- **URL**: `/store/reservation/delete`
+- **メソッド**: `DELETE`
+- **リクエスト**
+    ```json
+    {
+        "reservation_id": 1
+    }
+    ```
+- **レスポンス**
+    - 成功時: 受け渡し成功メッセージ
     - 失敗時: エラーメッセージ
 
 ## 注意事項

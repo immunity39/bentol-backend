@@ -23,10 +23,10 @@ func RegisterUser(name, password, mail string) (models.User, error) {
 	return user, nil
 }
 
-func LoginUser(name, password string) (models.User, error) {
+func LoginUser(mail, password string) (models.User, error) {
 	var user models.User
 
-	if err := config.DB.Where("name = ?", name).First(&user).Error; err != nil {
+	if err := config.DB.Where("mail = ?", mail).First(&user).Error; err != nil {
 		return models.User{}, errors.New("user not found")
 	}
 

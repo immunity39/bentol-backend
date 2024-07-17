@@ -3,69 +3,143 @@ package services
 import (
 	"bentol/config"
 	"bentol/models"
-	"bytes"
-	"encoding/json"
+	"bentol/pay"
 	"errors"
-	"net/http"
+	"log"
 	"time"
 )
 
-func MakeReservation(userID, storeID, menueID uint, reservTime string, count uint) (models.UserReservation, error) {
-	reservationTime, err := time.Parse("2006-01-02 15:04", reservTime)
+func MakeReservation(userID, storeID, menueID uint, resDate, resTime string, count uint) (models.UserReservation, error) {
+	jst, err := time.LoadLocation("Asia/Tokyo")
 	if err != nil {
+		return models.UserReservation{}, err
+	}
+
+	reservationTime, err := time.ParseInLocation("2006-01-02 15:04", resDate+" "+resTime, jst)
+	if err != nil {
+		return models.UserReservation{}, err
+	}
+	log.Println(reservationTime)
+
+	menue := models.Menue{}
+	if err := config.DB.Find(&menue, menueID).Error; err != nil {
 		return models.UserReservation{}, err
 	}
 
 	reservation := models.UserReservation{
-		UserID:     userID,
-		StoreID:    storeID,
-		MenueID:    menueID,
-		ReservTime: reservationTime,
-		ReservCnt:  count,
-		IsRecipt:   false,
+		UserID:      userID,
+		StoreID:     storeID,
+		MenueID:     menueID,
+		ReservTime:  reservationTime,
+		ReservCnt:   count,
+		IsRecipt:    false,
+		TotalAmount: menue.Price * count,
 	}
 
 	// 予約可能かどうかの確認
-	var existingReservations int64
-	config.DB.Model(&models.UserReservation{}).Where("store_id = ? AND menue_id = ? AND reserv_time = ?", storeID, menueID, reservationTime).Count(&existingReservations)
-
 	// スロット毎の最大予約数を取得
-	var policy models.StoreBasicReservationPolicy
-	config.DB.Where("store_id = ? AND day_of_week = DAYOFWEEK(?)", storeID, reservationTime).First(&policy)
+	var policy models.StoreSchedule
+	config.DB.Where("store_id = ? AND date = ? AND time = ?", storeID, resDate, resTime).First(&policy)
 
-	if existingReservations >= int64(policy.MaxReservationsPerSlot) {
+	if int64(count+uint(policy.CurrentReservations)) > int64(policy.MaxReservations) {
 		return models.UserReservation{}, errors.New("reservation limit exceeded")
 	}
 
 	if err := config.DB.Create(&reservation).Error; err != nil {
-		return models.UserReservation{}, err
+		return models.UserReservation{}, errors.New("create user reservation missed")
 	}
+
 	return reservation, nil
 }
 
-func ProcessPayment(UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint, IsRecipt bool, TotalAmount uint) error {
-	var PaymentRequest struct {
-		UserID      uint    `json:"user_id"`
-		StoreID     uint    `json:"store_id"`
-		MenueID     uint    `json:"menue_id"`
-		ReservTime  string  `json:"reserv_time"`
-		ReservCnt   uint    `json:"reserv_cnt"`
-		IsRecipt    bool    `json:"is_recipt"`
-		TotalAmount float64 `json:"total_amount"`
+func CurrentReservationUpdate(ReservID, ReservCnt uint) (string, error) {
+	var err error
+	schedule := models.StoreSchedule{}
+	err = config.DB.Model(&models.StoreSchedule{}).Where("id = ?", ReservID).First(&schedule).Error
+	if err != nil {
+		return "", err
 	}
-	requestBody, err := json.Marshal(PaymentRequest)
+
+	err = config.DB.Model(&models.StoreSchedule{}).Where("id = ?", schedule.ID).Update("current_reservations", schedule.CurrentReservations+int(ReservCnt)).Error
+	if err != nil {
+		return "", err
+	}
+
+	return "", nil
+}
+
+func ProcessPayment(ReservID, UserID, StoreID, MenueID uint, ReservTime string, ReservCnt uint) (string, error) {
+
+	menue := models.Menue{}
+	if err := config.DB.Find(&menue, MenueID).Error; err != nil {
+		return "", err
+	}
+
+	TotalAmount := menue.Price * ReservCnt
+
+	url, err := pay.Pay(ReservID, menue.Name, TotalAmount)
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
+}
+
+func CancelReservation(ReservID uint) error {
+	jst, er := time.LoadLocation("Asia/Tokyo")
+	if er != nil {
+		return er
+	}
+
+	reservation := models.UserReservation{}
+	if err := config.DB.Find(&reservation, ReservID).Error; err != nil {
+		return err
+	}
+	log.Println(reservation)
+
+	if reservation.IsRecipt {
+		return errors.New("already receipted")
+	}
+
+	var err error
+	schedule := models.StoreSchedule{}
+	err = config.DB.Model(&models.StoreSchedule{}).Where("store_id = ? AND date = ? AND time = ?", reservation.StoreID, reservation.ReservTime.In(jst).Format("2006-01-02"), reservation.ReservTime.In(jst).Format("15:04")).First(&schedule).Error
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Post("http://localhost:5000/pay", "application/json", bytes.NewBuffer(requestBody))
+	err = config.DB.Model(&models.StoreSchedule{}).Where("id = ?", schedule.ID).Update("current_reservations", schedule.CurrentReservations-int(reservation.ReservCnt)).Error
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("failed to process payment")
+	return nil
+}
+
+func ReservationDelete(ReservID uint) (string, error) {
+	reservation := models.UserReservation{}
+	if err := config.DB.Find(&reservation, ReservID).Error; err != nil {
+		return "", err
 	}
+
+	if err := config.DB.Delete(&reservation).Error; err != nil {
+		return "", err
+	}
+
+	return "", nil
+}
+
+func RefundPayment(ReservID uint) error {
+	reservation := models.UserReservation{}
+	if err := config.DB.Find(&reservation, ReservID).Error; err != nil {
+		return err
+	}
+
+	totalAmount := reservation.TotalAmount
+
+	if err := pay.Refund(ReservID, totalAmount); err != nil {
+		return err
+	}
+
 	return nil
 }
