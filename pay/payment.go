@@ -27,7 +27,7 @@ func Pay(ReservID uint, Name string, TotalAmount uint) (string, error) {
 			Currency: paypayopa.CurrencyJPY,
 		},
 		CodeType:     paypayopa.CodeTypeOrderQR,
-		RedirectURL:  "https://paypay.ne.jp",
+		RedirectURL:  "http://bentol.rd.dendai.ac.jp/purchased",
 		RedirectType: paypayopa.RedirectTypeWebLink,
 	})
 
